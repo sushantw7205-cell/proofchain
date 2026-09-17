@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter View — ProofChain</title>
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ProofChain</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="profile.html">Skills</a></li>
+      <li><a href="evidence.html">Evidence</a></li>
+      <li><a href="assessment.html">Assessments</a></li>
+      <li><a href="recruiter.html" class="active">Recruiter View</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-container recruiter-page">
+
+    <!-- Read-only banner -->
+    <div class="readonly-banner">
+      <span>🔒 Read-only recruiter view — no editing allowed</span>
+      <button class="btn btn-primary btn-small" id="copy-share-btn">Copy Share Link</button>
+    </div>
+
+    <!-- Public profile card -->
+    <div class="card public-profile-card">
+      <div class="public-avatar" id="public-avatar">A</div>
+      <div class="public-info">
+        <h1 id="public-name">Loading...</h1>
+        <p class="muted" id="public-course"></p>
+        <p class="public-goal" id="public-goal"></p>
+      </div>
+      <div class="public-summary">
+        <div class="public-stat">
+          <span class="public-stat-value" id="pub-skills">0</span>
+          <span class="public-stat-label">Skills</span>
+        </div>
+        <div class="public-stat">
+          <span class="public-stat-value" id="pub-evidence">0</span>
+          <span class="public-stat-label">Evidence</span>
+        </div>
+        <div class="public-stat">
+          <span class="public-stat-value" id="pub-confidence">0%</span>
+          <span class="public-stat-label">Avg Confidence</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills breakdown -->
+    <div class="section-header">
+      <h2>Verified Skills</h2>
+    </div>
+    <div id="recruiter-skills" class="recruiter-skills"></div>
+
+    <!-- Skill graph -->
+    <div class="section-header">
+      <h2>Skill Relationships</h2>
+    </div>
+    <div class="card graph-card">
+      <svg id="skill-graph" class="skill-graph" viewBox="0 0 600 400"></svg>
+    </div>
+
+    <!-- Evidence timeline -->
+    <div class="section-header">
+      <h2>Evidence Timeline</h2>
+    </div>
+    <div id="recruiter-evidence" class="evidence-list"></div>
+
+  </main>
+
+  <footer class="footer">
+    <p>ProofChain · Evidence-based skill verification · BCS Major Project</p>
+  </footer>
+
+  <script src="../js/storage.js"></script>
+  <script src="../js/models.js"></script>
+  <script src="../js/scoring.js"></script>
+  <script src="../js/recruiter.js"></script>
+</body>
+</html>
