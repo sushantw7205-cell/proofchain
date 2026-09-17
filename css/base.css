@@ -1,6 +1,4 @@
-/* ============================================
-   BASE.CSS — Theme variables, reset, typography
-   ============================================ */
+/* BASE.CSS — Theme variables, reset, typography */
 
 :root {
   --bg:        #0f172a;
@@ -24,18 +22,10 @@
   --max-width: 1200px;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
@@ -58,19 +48,14 @@ h2 { font-size: 1.75rem; }
 h3 { font-size: 1.15rem; }
 h4 { font-size: 1rem; }
 
-p {
-  color: var(--text-soft);
-}
+p { color: var(--text-soft); }
 
 a {
   color: var(--teal);
   text-decoration: none;
   transition: color 0.2s ease;
 }
-
-a:hover {
-  color: var(--blue);
-}
+a:hover { color: var(--blue); }
 
 .muted { color: var(--muted); }
 .center { text-align: center; }

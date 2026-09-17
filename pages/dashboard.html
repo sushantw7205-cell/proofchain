@@ -10,7 +10,6 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-brand">
       <span class="brand-dot"></span>
@@ -21,68 +20,60 @@
       <li><a href="dashboard.html" class="active">Dashboard</a></li>
       <li><a href="profile.html">Skills</a></li>
       <li><a href="evidence.html">Evidence</a></li>
-      <li><a href="assessment.html">Assessments</a></li>
-      <li><a href="recruiter.html">Recruiter View</a></li>
     </ul>
   </nav>
 
-  <main class="page-wrap">
+  <main class="dashboard">
 
-    <!-- STUDENT HEADER -->
-    <section class="student-header card accent-teal">
-      <div class="student-info">
-        <h1 id="student-name">Loading...</h1>
-        <p class="muted" id="student-course">—</p>
-        <p class="muted" id="student-goal">—</p>
+    <aside class="dash-sidebar">
+      <div class="card student-card">
+        <div class="student-avatar" id="student-avatar">A</div>
+        <h2 class="student-name" id="student-name">Loading...</h2>
+        <p class="student-course" id="student-course"></p>
+        <p class="student-goal" id="student-goal"></p>
+        <div class="student-actions">
+          <button class="btn btn-ghost btn-small" id="reset-btn">Reset Demo Data</button>
+        </div>
       </div>
-      <div class="student-actions">
-        <a href="profile.html" class="btn btn-ghost">Edit Skills</a>
-        <a href="evidence.html" class="btn btn-primary">+ Add Evidence</a>
+    </aside>
+
+    <section class="dash-main">
+
+      <div class="summary-grid">
+        <div class="summary-tile">
+          <p class="summary-label">Skills Tracked</p>
+          <p class="summary-value" id="stat-skills">0</p>
+        </div>
+        <div class="summary-tile">
+          <p class="summary-label">Evidence Items</p>
+          <p class="summary-value" id="stat-evidence">0</p>
+        </div>
+        <div class="summary-tile">
+          <p class="summary-label">Avg Confidence</p>
+          <p class="summary-value" id="stat-confidence">0%</p>
+        </div>
+        <div class="summary-tile">
+          <p class="summary-label">Verified</p>
+          <p class="summary-value" id="stat-verified">0</p>
+        </div>
       </div>
+
+      <div class="section-header">
+        <h2>Your Skills</h2>
+        <a href="profile.html" class="btn btn-ghost btn-small">+ Add Skill</a>
+      </div>
+      <div id="skills-container" class="skills-grid"></div>
+
+      <div class="section-header">
+        <h2>Next Proof</h2>
+      </div>
+      <div id="recommendations" class="recommendations"></div>
+
     </section>
-
-    <!-- SUMMARY STATS -->
-    <section class="stats-row" id="stats-row">
-      <div class="stat-card card accent-blue">
-        <p class="stat-label">Skills Tracked</p>
-        <p class="stat-value" id="stat-skills">0</p>
-      </div>
-      <div class="stat-card card accent-yellow">
-        <p class="stat-label">Evidence Items</p>
-        <p class="stat-value" id="stat-evidence">0</p>
-      </div>
-      <div class="stat-card card accent-green">
-        <p class="stat-label">Avg Confidence</p>
-        <p class="stat-value" id="stat-confidence">0%</p>
-      </div>
-      <div class="stat-card card accent-purple">
-        <p class="stat-label">Assessments</p>
-        <p class="stat-value" id="stat-assessments">0</p>
-      </div>
-    </section>
-
-    <!-- SKILL CARDS -->
-    <section class="section">
-      <h2 class="section-title">Your Skills</h2>
-      <div id="skill-cards" class="grid-2"></div>
-    </section>
-
-    <!-- NEXT PROOF -->
-    <section class="section" id="next-proof-section" style="display:none;">
-      <h2 class="section-title">Next Proof</h2>
-      <div class="card accent-teal" id="next-proof-card"></div>
-    </section>
-
-    <!-- RECENT EVIDENCE -->
-    <section class="section">
-      <h2 class="section-title">Recent Evidence</h2>
-      <div id="recent-evidence" class="grid-3"></div>
-    </section>
-
   </main>
 
   <footer class="footer">
-    <p>ProofChain · Evidence-based skill verification</p>
+    <p>ProofChain · Evidence-based skill verification · BCS Major Project</p>
   </footer>
 
   <script src="../js/storage.js"></script>

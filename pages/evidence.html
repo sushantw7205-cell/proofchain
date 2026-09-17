@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evidence — ProofChain</title>
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ProofChain</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="profile.html">Skills</a></li>
+      <li><a href="evidence.html" class="active">Evidence</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-container">
+
+    <div class="page-header">
+      <div>
+        <h1>Your Evidence</h1>
+        <p class="muted">Projects, tasks, assessments and certificates that prove your skills.</p>
+      </div>
+      <button class="btn btn-primary" id="add-evidence-btn">+ Add Evidence</button>
+    </div>
+
+    <div class="evidence-list" id="evidence-list"></div>
+
+  </main>
+
+  <!-- EVIDENCE MODAL -->
+  <div class="modal-backdrop" id="evidence-modal-backdrop" hidden>
+    <div class="modal">
+      <h2 id="evidence-modal-title">Add Evidence</h2>
+      <form id="evidence-form">
+
+        <div class="form-group">
+          <label for="field-evidence-title">Title</label>
+          <input type="text" id="field-evidence-title" placeholder="e.g. REST API project" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-evidence-skill">Linked Skill</label>
+            <select id="field-evidence-skill" required>
+              <option value="">— Select a skill —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-evidence-type">Type</label>
+            <select id="field-evidence-type">
+              <option value="project">Project</option>
+              <option value="task">Coding Task</option>
+              <option value="assessment">Assessment</option>
+              <option value="certificate">Certificate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="field-evidence-desc">Description</label>
+          <textarea id="field-evidence-desc" placeholder="What did you build? What problem did it solve?"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-evidence-link">Link (optional)</label>
+            <input type="url" id="field-evidence-link" placeholder="https://github.com/..." />
+          </div>
+          <div class="form-group">
+            <label for="field-evidence-date">Date Completed</label>
+            <input type="date" id="field-evidence-date" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="field-evidence-verified" style="width:auto;" />
+            Mark as verified (peer / mentor approved)
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="evidence-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Evidence</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>ProofChain · Evidence-based skill verification · BCS Major Project</p>
+  </footer>
+
+  <script src="../js/storage.js"></script>
+  <script src="../js/models.js"></script>
+  <script src="../js/scoring.js"></script>
+  <script src="../js/evidence.js"></script>
+</body>
+</html>

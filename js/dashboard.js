@@ -1,189 +1,195 @@
-/* ============================================
-   DASHBOARD.JS — Renders the student dashboard
-   ============================================ */
+/* DASHBOARD.JS — Renders the student dashboard */
 
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
+  renderDashboard();
+});
 
-  /* ---------- Load data ---------- */
-  const profile = Models.loadProfile();
-  const { student, skills, evidence, assessments } = profile;
+function renderDashboard() {
+  var profile = Models.loadProfile();
+  var analysis = Scoring.analyzeProfile(profile);
 
-  /* ---------- Student header ---------- */
-  document.getElementById('student-name').textContent = student.name;
-  document.getElementById('student-course').textContent = student.course;
-  document.getElementById('student-goal').textContent = student.goal
-    ? 'Goal: ' + student.goal
-    : '';
+  renderStudentCard(profile);
+  renderSummaryTiles(profile, analysis);
+  renderSkillCards(analysis);
+  renderRecommendations(analysis);
+  setupResetButton();
+}
 
-  /* ---------- Stats row ---------- */
-  document.getElementById('stat-skills').textContent = skills.length;
-  document.getElementById('stat-evidence').textContent = evidence.length;
-  document.getElementById('stat-assessments').textContent = assessments.length;
+function renderStudentCard(profile) {
+  var s = profile.student;
+  setText('student-name', s.name || 'Student');
+  setText('student-course', s.course || '');
+  setText('student-goal', s.goal ? ('Goal: ' + s.goal) : '');
+  setText('student-avatar', (s.name || 'S').charAt(0).toUpperCase());
+}
 
-  // Average confidence across all skills
-  const confidences = skills.map(sk =>
-    Scoring.calculateConfidence(sk.id, evidence, assessments).score
-  );
-  const avgConf = confidences.length
-    ? Math.round(confidences.reduce((a, b) => a + b, 0) / confidences.length)
-    : 0;
-  document.getElementById('stat-confidence').textContent = avgConf + '%';
+function renderSummaryTiles(profile, analysis) {
+  setText('stat-skills', profile.skills.length);
+  setText('stat-evidence', profile.evidence.length);
 
-  /* ---------- Skill cards ---------- */
-  const skillCardsEl = document.getElementById('skill-cards');
+  var verifiedCount = 0;
+  for (var i = 0; i < profile.evidence.length; i++) {
+    if (profile.evidence[i].verified) verifiedCount++;
+  }
+  setText('stat-verified', verifiedCount);
 
-  if (skills.length === 0) {
-    skillCardsEl.innerHTML = `
-      <div class="card empty-state">
-        <h3>No skills yet</h3>
-        <p>Add your first skill to start building your profile.</p>
-        <a href="profile.html" class="btn btn-primary">+ Add Skill</a>
-      </div>
-    `;
-  } else {
-    skillCardsEl.innerHTML = skills.map(skill => {
-      const conf = Scoring.calculateConfidence(skill.id, evidence, assessments);
-      const prof = Scoring.estimateProficiency(skill.id, skill, assessments);
-      return renderSkillCard(skill, conf, prof);
-    }).join('');
+  var avgConfidence = 0;
+  if (analysis.length > 0) {
+    var sum = 0;
+    for (var j = 0; j < analysis.length; j++) {
+      sum += analysis[j].confidence.score;
+    }
+    avgConfidence = Math.round(sum / analysis.length);
+  }
+  setText('stat-confidence', avgConfidence + '%');
+}
+
+function renderSkillCards(analysis) {
+  var container = document.getElementById('skills-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (analysis.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No skills yet.</p></div>';
+    return;
   }
 
-  /**
-   * Build the HTML for a single skill card.
-   */
-  function renderSkillCard(skill, conf, prof) {
-    const confColor = conf.score >= 75 ? 'var(--green)'
-                    : conf.score >= 50 ? 'var(--yellow)'
-                    : 'var(--red)';
-    const relatedCount = (skill.relatedSkills || []).length;
+  for (var i = 0; i < analysis.length; i++) {
+    container.appendChild(createSkillCard(analysis[i]));
+  }
+}
 
-    return `
-      <div class="card skill-card">
-        <div class="skill-head">
-          <h3>${skill.name}</h3>
-          <span class="badge">${skill.category}</span>
-        </div>
+function createSkillCard(item) {
+  var skill = item.skill;
+  var confidence = item.confidence;
+  var proficiency = item.proficiency;
+  var recommendation = item.recommendation;
 
-        <div class="progress-block">
-          <div class="progress-row">
-            <span class="progress-label">Proficiency</span>
-            <span class="progress-value">${prof}%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${prof}%"></div></div>
-        </div>
+  var confColor = confidence.score >= 70 ? 'var(--green)'
+    : confidence.score >= 40 ? 'var(--yellow)'
+    : 'var(--red)';
 
-        <div class="progress-block">
-          <div class="progress-row">
-            <span class="progress-label">Evidence Confidence</span>
-            <span class="progress-value" style="color:${confColor}">${conf.score}%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${conf.score}%; background:${confColor}"></div></div>
-        </div>
+  var evidenceCount = confidence.breakdown.length;
 
-        <p class="muted skill-meta">
-          ${conf.breakdown.length} evidence item${conf.breakdown.length === 1 ? '' : 's'}
-          · ${relatedCount} related skill${relatedCount === 1 ? '' : 's'}
-        </p>
+  var card = document.createElement('div');
+  card.className = 'skill-card card';
 
-        <button class="btn btn-ghost btn-small" onclick="showBreakdown('${skill.id}')">
-          Why this score?
-        </button>
-      </div>
-    `;
+  card.innerHTML =
+    '<div class="skill-card-header">' +
+      '<div>' +
+        '<h3 class="skill-name">' + escapeHtml(skill.name) + '</h3>' +
+        '<p class="skill-category">' + escapeHtml(skill.category || '') + '</p>' +
+      '</div>' +
+      '<span class="skill-badge" style="background:' + confColor + '22;color:' + confColor + '">' +
+        confidence.score + '%' +
+      '</span>' +
+    '</div>' +
+    '<div class="skill-bars">' +
+      '<div class="bar-row">' +
+        '<span class="bar-label">Confidence</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + confidence.score + '%;background:' + confColor + '"></div></div>' +
+        '<span class="bar-value">' + confidence.score + '%</span>' +
+      '</div>' +
+      '<div class="bar-row">' +
+        '<span class="bar-label">Proficiency</span>' +
+        '<div class="bar-track"><div class="bar-fill bar-prof" style="width:' + proficiency + '%"></div></div>' +
+        '<span class="bar-value">' + proficiency + '%</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="skill-footer">' +
+      '<span class="skill-meta">' + evidenceCount + ' evidence item' + (evidenceCount === 1 ? '' : 's') + '</span>' +
+      '<button class="btn-link">Why this score? →</button>' +
+    '</div>' +
+    '<div class="why-panel" hidden>' + renderBreakdownTable(confidence, proficiency) + '</div>' +
+    '<div class="recommendation-mini"><strong>Next:</strong> ' + escapeHtml(recommendation.title) + '</div>';
+
+  var toggleBtn = card.querySelector('.btn-link');
+  var panel = card.querySelector('.why-panel');
+  toggleBtn.addEventListener('click', function () {
+    panel.hidden = !panel.hidden;
+    toggleBtn.textContent = panel.hidden ? 'Why this score? →' : 'Hide breakdown ↑';
+  });
+
+  return card;
+}
+
+function renderBreakdownTable(confidence, proficiency) {
+  if (confidence.breakdown.length === 0) {
+    return '<p class="muted">No evidence yet.</p>';
   }
 
-  /* ---------- Breakdown modal (global) ---------- */
-  window.showBreakdown = function (skillId) {
-    const skill = skills.find(s => s.id === skillId);
-    const conf = Scoring.calculateConfidence(skillId, evidence, assessments);
-
-    const rows = conf.breakdown.length
-      ? conf.breakdown.map(b => `
-        <tr>
-          <td>${b.title}</td>
-          <td>${b.type}</td>
-          <td>${b.recency}</td>
-          <td>${b.verified ? '✅' : '—'}</td>
-          <td class="right">+${b.points}</td>
-        </tr>
-      `).join('')
-      : `<tr><td colspan="5" class="muted center">No evidence yet</td></tr>`;
-
-    const html = `
-      <div class="modal-backdrop" onclick="closeModal(event)">
-        <div class="modal" onclick="event.stopPropagation()">
-          <div class="modal-head">
-            <h3>${skill.name} — Confidence Breakdown</h3>
-            <button class="modal-close" onclick="closeModal()">×</button>
-          </div>
-          <p class="muted">Total points: <strong>${conf.totalPoints}</strong> / ${conf.maxPoints}</p>
-          <table class="breakdown-table">
-            <thead>
-              <tr>
-                <th>Evidence</th><th>Type</th><th>Recency</th><th>Verified</th><th class="right">Points</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <p class="muted center" style="margin-top:14px">
-            Final confidence: <strong style="color:var(--teal)">${conf.score}%</strong>
-          </p>
-        </div>
-      </div>
-    `;
-
-    const wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    document.body.appendChild(wrap.firstChild);
-  };
-
-  window.closeModal = function (e) {
-    if (e && e.target && !e.target.classList.contains('modal-backdrop')) return;
-    const el = document.querySelector('.modal-backdrop');
-    if (el) el.remove();
-  };
-
-  /* ---------- Next Proof recommendation ---------- */
-  if (skills.length > 0) {
-    // Pick the skill with lowest confidence
-    const sorted = skills.map(sk => ({
-      skill: sk,
-      conf: Scoring.calculateConfidence(sk.id, evidence, assessments).score
-    })).sort((a, b) => a.conf - b.conf);
-
-    const weakest = sorted[0];
-    const rec = Scoring.recommendNextTask(weakest.skill.id, weakest.conf, evidence);
-
-    document.getElementById('next-proof-card').innerHTML = `
-      <p class="muted">Recommended action for <strong>${weakest.skill.name}</strong></p>
-      <h3 style="margin:10px 0">${rec.title}</h3>
-      <p class="muted">${rec.reason}</p>
-      <button class="btn btn-primary" style="margin-top:14px">Start Task</button>
-    `;
-    document.getElementById('next-proof-section').style.display = 'block';
+  var rows = '';
+  for (var i = 0; i < confidence.breakdown.length; i++) {
+    var b = confidence.breakdown[i];
+    rows += '<tr>' +
+      '<td>' + escapeHtml(b.title) + '</td>' +
+      '<td>' + b.base.toFixed(1) + '</td>' +
+      '<td>' + b.recencyMultiplier.toFixed(1) + '</td>' +
+      '<td>' + (b.verified ? '✓' : '—') + '</td>' +
+      '<td class="pts">' + b.points.toFixed(2) + '</td>' +
+    '</tr>';
   }
 
-  /* ---------- Recent evidence ---------- */
-  const recentEl = document.getElementById('recent-evidence');
-  const recent = [...evidence]
-    .sort((a, b) => new Date(b.dateCompleted) - new Date(a.dateCompleted))
-    .slice(0, 6);
+  return '<table class="breakdown-table">' +
+    '<thead><tr><th>Evidence</th><th>Weight</th><th>Recency</th><th>Verified</th><th>Points</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+    '<tfoot><tr>' +
+      '<td colspan="4" class="muted">Total points → normalized to 0–100</td>' +
+      '<td class="pts"><strong>' + confidence.totalPoints.toFixed(2) + '</strong></td>' +
+    '</tr></tfoot>' +
+  '</table>' +
+  '<p class="formula muted">Confidence = Σ(evidence points) ÷ 8 × 100 · Proficiency estimate = ' + proficiency + '%</p>';
+}
 
-  if (recent.length === 0) {
-    recentEl.innerHTML = `<div class="card empty-state"><p>No evidence yet.</p></div>`;
-  } else {
-    recentEl.innerHTML = recent.map(ev => {
-      const skill = skills.find(s => s.id === ev.skillId);
-      return `
-        <div class="card accent-blue">
-          <h4>${ev.title}</h4>
-          <p class="muted">${skill ? skill.name : '—'} · ${ev.type}</p>
-          <p class="muted" style="font-size:0.82rem; margin-top:6px">
-            ${ev.dateCompleted} ${ev.verified ? '· ✅ verified' : ''}
-          </p>
-        </div>
-      `;
-    }).join('');
+function renderRecommendations(analysis) {
+  var container = document.getElementById('recommendations');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (analysis.length === 0) {
+    container.innerHTML = '<p class="muted">Add skills to see recommendations.</p>';
+    return;
   }
 
-})();
+  var sorted = analysis.slice().sort(function (a, b) {
+    return a.confidence.score - b.confidence.score;
+  });
+  var top = sorted.slice(0, 2);
+
+  for (var i = 0; i < top.length; i++) {
+    var item = top[i];
+    var el = document.createElement('div');
+    el.className = 'recommendation-card card accent-teal';
+    el.innerHTML =
+      '<p class="rec-skill">' + escapeHtml(item.skill.name) + '</p>' +
+      '<p class="rec-title">' + escapeHtml(item.recommendation.title) + '</p>' +
+      '<p class="rec-reason muted">' + escapeHtml(item.recommendation.reason) + '</p>';
+    container.appendChild(el);
+  }
+}
+
+function setupResetButton() {
+  var btn = document.getElementById('reset-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    if (confirm('Reset to demo data?')) {
+      Models.resetToSeed();
+      renderDashboard();
+    }
+  });
+}
+
+function setText(id, value) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

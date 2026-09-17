@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills — ProofChain</title>
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ProofChain</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="profile.html" class="active">Skills</a></li>
+      <li><a href="evidence.html">Evidence</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-container">
+
+    <div class="page-header">
+      <div>
+        <h1>Your Skills</h1>
+        <p class="muted">Add skills you want to prove. Link evidence to them on the Evidence page.</p>
+      </div>
+      <button class="btn btn-primary" id="add-skill-btn">+ Add Skill</button>
+    </div>
+
+    <div class="skills-list" id="skills-list"></div>
+
+  </main>
+
+  <!-- SKILL MODAL -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal">
+      <h2 id="modal-title">Add New Skill</h2>
+      <form id="skill-form">
+        <div class="form-group">
+          <label for="field-name">Skill Name</label>
+          <input type="text" id="field-name" placeholder="e.g. JavaScript" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-category">Category</label>
+            <input type="text" id="field-category" placeholder="e.g. Frontend" />
+          </div>
+          <div class="form-group">
+            <label for="field-level">Self-assessed Level</label>
+            <select id="field-level">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Skill</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>ProofChain · Evidence-based skill verification · BCS Major Project</p>
+  </footer>
+
+  <script src="../js/storage.js"></script>
+  <script src="../js/models.js"></script>
+  <script src="../js/scoring.js"></script>
+  <script src="../js/profile.js"></script>
+</body>
+</html>

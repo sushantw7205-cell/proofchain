@@ -1,8 +1,5 @@
-/* ============================================
-   LAYOUT.CSS — Page structure, sections, grids
-   ============================================ */
+/* LAYOUT.CSS — Page structure, sections, grids */
 
-/* ---------- Hero ---------- */
 .hero {
   padding: 90px 40px 70px;
   text-align: center;
@@ -56,7 +53,6 @@
   flex-wrap: wrap;
 }
 
-/* ---------- Section ---------- */
 .section {
   padding: 60px 40px;
   max-width: var(--max-width);
@@ -69,7 +65,6 @@
   font-size: 1.75rem;
 }
 
-/* ---------- Grids ---------- */
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -82,23 +77,68 @@
   gap: var(--gap);
 }
 
-/* ---------- Responsive ---------- */
+/* ---------- Dashboard layout ---------- */
+.dashboard {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.dash-sidebar {
+  position: sticky;
+  top: 90px;
+}
+
+.dash-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* ---------- Page container (for standalone pages) ---------- */
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.page-header h1 { font-size: 1.75rem; }
+.page-header p { font-size: 0.9rem; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .dash-sidebar { position: static; }
+  .page-container { padding: 20px; }
+}
+
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
     gap: 12px;
     padding: 16px 20px;
   }
-
   .nav-links {
     flex-wrap: wrap;
     justify-content: center;
   }
-
   .hero {
     padding: 60px 20px 40px;
   }
-
   .hero-title { font-size: 2rem; }
   .section { padding: 40px 20px; }
 }

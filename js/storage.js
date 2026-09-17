@@ -1,23 +1,11 @@
-/* ============================================
-   STORAGE.JS — localStorage wrapper
-   ============================================
-   Why this file?
-   Instead of calling localStorage directly everywhere,
-   we centralize it here. Later, we can swap this for
-   Firebase without changing the rest of the app.
-   ============================================ */
+/* STORAGE.JS — localStorage wrapper */
 
-const Storage = (() => {
-  // Namespace prefix — avoids collision with other sites' localStorage
-  const PREFIX = 'proofchain_';
+var Storage = (function () {
+  var PREFIX = 'proofchain_';
 
-  /**
-   * Save a value (object or primitive) under a key.
-   */
   function save(key, value) {
     try {
-      const serialized = JSON.stringify(value);
-      localStorage.setItem(PREFIX + key, serialized);
+      localStorage.setItem(PREFIX + key, JSON.stringify(value));
       return true;
     } catch (err) {
       console.error('Storage.save error:', err);
@@ -25,12 +13,10 @@ const Storage = (() => {
     }
   }
 
-  /**
-   * Read a value by key. Returns fallback if missing.
-   */
-  function load(key, fallback = null) {
+  function load(key, fallback) {
+    if (fallback === undefined) fallback = null;
     try {
-      const raw = localStorage.getItem(PREFIX + key);
+      var raw = localStorage.getItem(PREFIX + key);
       if (raw === null) return fallback;
       return JSON.parse(raw);
     } catch (err) {
@@ -39,35 +25,37 @@ const Storage = (() => {
     }
   }
 
-  /**
-   * Remove a key.
-   */
   function remove(key) {
     localStorage.removeItem(PREFIX + key);
   }
 
-  /**
-   * Clear ALL ProofChain data (not other sites' data).
-   */
   function clearAll() {
-    Object.keys(localStorage)
-      .filter(k => k.startsWith(PREFIX))
-      .forEach(k => localStorage.removeItem(k));
+    var keys = Object.keys(localStorage);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].indexOf(PREFIX) === 0) {
+        localStorage.removeItem(keys[i]);
+      }
+    }
   }
 
-  /**
-   * Debug helper — dump everything we've stored.
-   */
   function dump() {
-    const out = {};
-    Object.keys(localStorage)
-      .filter(k => k.startsWith(PREFIX))
-      .forEach(k => {
-        out[k.replace(PREFIX, '')] = JSON.parse(localStorage.getItem(k));
-      });
+    var out = {};
+    var keys = Object.keys(localStorage);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].indexOf(PREFIX) === 0) {
+        var cleanKey = keys[i].replace(PREFIX, '');
+        out[cleanKey] = JSON.parse(localStorage.getItem(keys[i]));
+      }
+    }
     console.table(out);
     return out;
   }
 
-  return { save, load, remove, clearAll, dump };
+  return {
+    save: save,
+    load: load,
+    remove: remove,
+    clearAll: clearAll,
+    dump: dump
+  };
 })();
