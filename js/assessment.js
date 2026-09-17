@@ -1,5 +1,5 @@
 /* ============================================
-   ASSESSMENT.JS — Quiz engine
+   ASSESSMENT.JS — Quiz via Firestore
    ============================================ */
 
 var quizState = {
@@ -11,14 +11,14 @@ var quizState = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-  renderSkillPicker();
-  renderPastAssessments();
-  setupExitAndNext();
+  Models.loadProfile().then(function (profile) {
+    renderSkillPicker(profile);
+    renderPastAssessments(profile);
+    setupExitAndNext();
+  });
 });
 
-/* ---------- Skill picker ---------- */
-function renderSkillPicker() {
-  var profile = Models.loadProfile();
+function renderSkillPicker(profile) {
   var container = document.getElementById('skill-picker');
   container.innerHTML = '';
 
@@ -46,9 +46,7 @@ function createSkillPickerCard(skill) {
     '<h3>' + escapeHtml(skill.name) + '</h3>' +
     '<p>' + escapeHtml(skill.category || 'Uncategorised') + '</p>' +
     '<p class="muted" style="margin-top:8px;">' +
-      (hasQuestions
-        ? '5 questions available'
-        : 'No custom questions — generic quiz') +
+      (hasQuestions ? '5 questions available' : 'No custom questions — generic quiz') +
     '</p>' +
     '<button class="btn btn-primary btn-small" style="margin-top:14px;">Start Quiz →</button>';
 
@@ -59,9 +57,7 @@ function createSkillPickerCard(skill) {
   return card;
 }
 
-/* ---------- Past assessments ---------- */
-function renderPastAssessments() {
-  var profile = Models.loadProfile();
+function renderPastAssessments(profile) {
   var container = document.getElementById('past-assessments');
   container.innerHTML = '';
 
@@ -113,7 +109,6 @@ function getScoreLabel(score) {
   return 'Weak';
 }
 
-/* ---------- Start quiz ---------- */
 function startQuiz(skill) {
   var questions = QUESTIONS[skill.name] && QUESTIONS[skill.name].length > 0
     ? QUESTIONS[skill.name]
@@ -121,7 +116,7 @@ function startQuiz(skill) {
 
   quizState = {
     skill: skill,
-    questions: questions.slice(0, 5),   // max 5
+    questions: questions.slice(0, 5),
     currentIndex: 0,
     answers: [],
     selectedIndex: null
@@ -130,13 +125,11 @@ function startQuiz(skill) {
   document.getElementById('picker-view').hidden = true;
   document.getElementById('result-view').hidden = true;
   document.getElementById('quiz-view').hidden = false;
-
   document.getElementById('quiz-skill-name').textContent = skill.name;
 
   renderQuestion();
 }
 
-/* ---------- Render current question ---------- */
 function renderQuestion() {
   var q = quizState.questions[quizState.currentIndex];
   var total = quizState.questions.length;
@@ -157,14 +150,11 @@ function renderQuestion() {
       var opt = document.createElement('button');
       opt.className = 'quiz-option';
       opt.textContent = q.options[idx];
-      opt.addEventListener('click', function () {
-        selectOption(idx);
-      });
+      opt.addEventListener('click', function () { selectOption(idx); });
       optionsContainer.appendChild(opt);
     })(i);
   }
 
-  // Update Next button
   var nextBtn = document.getElementById('quiz-next');
   nextBtn.disabled = true;
   nextBtn.textContent = (current === total) ? 'Finish →' : 'Next →';
@@ -172,16 +162,13 @@ function renderQuestion() {
 
 function selectOption(idx) {
   quizState.selectedIndex = idx;
-
   var options = document.querySelectorAll('.quiz-option');
   for (var i = 0; i < options.length; i++) {
     options[i].classList.toggle('selected', i === idx);
   }
-
   document.getElementById('quiz-next').disabled = false;
 }
 
-/* ---------- Next / Finish ---------- */
 function setupExitAndNext() {
   document.getElementById('quiz-next').addEventListener('click', handleNext);
   document.getElementById('quiz-exit').addEventListener('click', exitQuiz);
@@ -190,7 +177,6 @@ function setupExitAndNext() {
 
 function handleNext() {
   if (quizState.selectedIndex === null) return;
-
   quizState.answers.push(quizState.selectedIndex);
   quizState.currentIndex++;
 
@@ -207,53 +193,50 @@ function exitQuiz() {
 }
 
 function backToPicker() {
-  document.getElementById('picker-view').hidden = false;
-  document.getElementById('quiz-view').hidden = true;
-  document.getElementById('result-view').hidden = true;
-  renderSkillPicker();
-  renderPastAssessments();
+  Models.loadProfile().then(function (profile) {
+    document.getElementById('picker-view').hidden = false;
+    document.getElementById('quiz-view').hidden = true;
+    document.getElementById('result-view').hidden = true;
+    renderSkillPicker(profile);
+    renderPastAssessments(profile);
+  });
 }
 
-/* ---------- Finish ---------- */
 function finishQuiz() {
   var correct = 0;
   for (var i = 0; i < quizState.questions.length; i++) {
-    if (quizState.answers[i] === quizState.questions[i].correct) {
-      correct++;
-    }
+    if (quizState.answers[i] === quizState.questions[i].correct) correct++;
   }
 
   var total = quizState.questions.length;
   var score = Math.round((correct / total) * 100);
 
-  // Save as assessment evidence
-  var profile = Models.loadProfile();
-  profile.assessments.push({
-    id: Models.uid('as'),
-    skillId: quizState.skill.id,
-    score: score,
-    dateTaken: new Date().toISOString().slice(0, 10),
-    questionsAttempted: total
+  Models.loadProfile().then(function (profile) {
+    profile.assessments.push({
+      id: Models.uid('as'),
+      skillId: quizState.skill.id,
+      score: score,
+      dateTaken: new Date().toISOString().slice(0, 10),
+      questionsAttempted: total
+    });
+
+    return Models.saveProfile(profile).then(function () {
+      document.getElementById('quiz-view').hidden = true;
+      document.getElementById('result-view').hidden = false;
+      document.getElementById('result-score').textContent = score + '%';
+      document.getElementById('result-meta').textContent =
+        correct + ' of ' + total + ' correct · ' + quizState.skill.name;
+
+      var msg = '';
+      if (score >= 80) msg = 'Excellent! Strong evidence added to your profile.';
+      else if (score >= 60) msg = 'Good job! This adds solid evidence.';
+      else if (score >= 40) msg = 'Decent — consider more practice to raise confidence.';
+      else msg = 'Keep learning — try again after some practice.';
+      document.getElementById('result-message').textContent = msg;
+    });
   });
-  Models.saveProfile(profile);
-
-  // Show result
-  document.getElementById('quiz-view').hidden = true;
-  document.getElementById('result-view').hidden = false;
-
-  document.getElementById('result-score').textContent = score + '%';
-  document.getElementById('result-meta').textContent =
-    correct + ' of ' + total + ' correct · ' + quizState.skill.name;
-
-  var msg = '';
-  if (score >= 80) msg = 'Excellent! Strong evidence added to your profile.';
-  else if (score >= 60) msg = 'Good job! This adds solid evidence.';
-  else if (score >= 40) msg = 'Decent — consider more practice to raise confidence.';
-  else msg = 'Keep learning — try again after some practice.';
-  document.getElementById('result-message').textContent = msg;
 }
 
-/* ---------- Escape HTML ---------- */
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)

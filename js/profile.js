@@ -1,15 +1,19 @@
-/* PROFILE.JS — Skill Profile page logic (CRUD for skills) */
+/* ============================================
+   PROFILE.JS — Skill CRUD via Firestore
+   ============================================ */
 
 var editingSkillId = null;
+var cachedProfile = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-  renderSkillList();
-  setupModal();
+  Models.loadProfile().then(function (profile) {
+    cachedProfile = profile;
+    renderSkillList(profile);
+    setupModal();
+  });
 });
 
-/* ---------- Render skill list ---------- */
-function renderSkillList() {
-  var profile = Models.loadProfile();
+function renderSkillList(profile) {
   var container = document.getElementById('skills-list');
   container.innerHTML = '';
 
@@ -34,8 +38,8 @@ function createSkillRow(skill) {
         ' · Self level: ' + escapeHtml(skill.selfLevel || 'Beginner') + '</p>' +
     '</div>' +
     '<div class="skill-row-actions">' +
-      '<button class="btn btn-ghost btn-small" data-action="edit" data-id="' + skill.id + '">Edit</button>' +
-      '<button class="btn btn-danger btn-small" data-action="delete" data-id="' + skill.id + '">Delete</button>' +
+      '<button class="btn btn-ghost btn-small" data-action="edit">Edit</button>' +
+      '<button class="btn btn-danger btn-small" data-action="delete">Delete</button>' +
     '</div>';
 
   row.querySelector('[data-action="edit"]').addEventListener('click', function () {
@@ -48,9 +52,7 @@ function createSkillRow(skill) {
   return row;
 }
 
-/* ---------- Modal ---------- */
 function setupModal() {
-  var modal = document.getElementById('skill-modal');
   var backdrop = document.getElementById('modal-backdrop');
   var form = document.getElementById('skill-form');
   var cancelBtn = document.getElementById('modal-cancel');
@@ -98,7 +100,6 @@ function closeModal() {
   editingSkillId = null;
 }
 
-/* ---------- Form submit ---------- */
 function handleFormSubmit() {
   var name = document.getElementById('field-name').value.trim();
   var category = document.getElementById('field-category').value.trim();
@@ -109,54 +110,49 @@ function handleFormSubmit() {
     return;
   }
 
-  var profile = Models.loadProfile();
-
-  if (editingSkillId) {
-    // Edit existing
-    for (var i = 0; i < profile.skills.length; i++) {
-      if (profile.skills[i].id === editingSkillId) {
-        profile.skills[i].name = name;
-        profile.skills[i].category = category;
-        profile.skills[i].selfLevel = level;
-        break;
+  Models.loadProfile().then(function (profile) {
+    if (editingSkillId) {
+      for (var i = 0; i < profile.skills.length; i++) {
+        if (profile.skills[i].id === editingSkillId) {
+          profile.skills[i].name = name;
+          profile.skills[i].category = category;
+          profile.skills[i].selfLevel = level;
+          break;
+        }
       }
+    } else {
+      profile.skills.push({
+        id: Models.uid('sk'),
+        name: name,
+        category: category,
+        selfLevel: level,
+        relatedSkills: []
+      });
     }
-  } else {
-    // Create new
-    profile.skills.push({
-      id: Models.uid('sk'),
-      name: name,
-      category: category,
-      selfLevel: level,
-      relatedSkills: []
-    });
-  }
 
-  Models.saveProfile(profile);
-  closeModal();
-  renderSkillList();
+    return Models.saveProfile(profile).then(function () {
+      cachedProfile = profile;
+      closeModal();
+      renderSkillList(profile);
+    });
+  });
 }
 
-/* ---------- Delete ---------- */
 function deleteSkill(skillId) {
   if (!confirm('Delete this skill? Evidence linked to it will also be removed.')) return;
 
-  var profile = Models.loadProfile();
+  Models.loadProfile().then(function (profile) {
+    profile.skills = profile.skills.filter(function (s) { return s.id !== skillId; });
+    profile.evidence = profile.evidence.filter(function (e) { return e.skillId !== skillId; });
+    profile.assessments = profile.assessments.filter(function (a) { return a.skillId !== skillId; });
 
-  // Remove skill
-  profile.skills = profile.skills.filter(function (s) { return s.id !== skillId; });
-
-  // Remove linked evidence
-  profile.evidence = profile.evidence.filter(function (e) { return e.skillId !== skillId; });
-
-  // Remove linked assessments
-  profile.assessments = profile.assessments.filter(function (a) { return a.skillId !== skillId; });
-
-  Models.saveProfile(profile);
-  renderSkillList();
+    return Models.saveProfile(profile).then(function () {
+      cachedProfile = profile;
+      renderSkillList(profile);
+    });
+  });
 }
 
-/* ---------- Escape HTML ---------- */
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)

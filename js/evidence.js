@@ -1,16 +1,17 @@
-/* EVIDENCE.JS — Evidence page logic (CRUD for projects, tasks, assessments) */
+/* ============================================
+   EVIDENCE.JS — Evidence CRUD via Firestore
+   ============================================ */
 
 var editingEvidenceId = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-  renderEvidenceList();
-  populateSkillDropdown();
-  setupEvidenceModal();
+  Models.loadProfile().then(function (profile) {
+    renderEvidenceList(profile);
+    setupEvidenceModal();
+  });
 });
 
-/* ---------- Render evidence list ---------- */
-function renderEvidenceList() {
-  var profile = Models.loadProfile();
+function renderEvidenceList(profile) {
   var container = document.getElementById('evidence-list');
   container.innerHTML = '';
 
@@ -19,7 +20,6 @@ function renderEvidenceList() {
     return;
   }
 
-  // Sort newest first
   var sorted = profile.evidence.slice().sort(function (a, b) {
     return new Date(b.dateCompleted) - new Date(a.dateCompleted);
   });
@@ -66,7 +66,7 @@ function createEvidenceRow(ev, profile) {
     '</div>';
 
   row.querySelector('[data-action="edit"]').addEventListener('click', function () {
-    openEvidenceModal(ev);
+    openEvidenceModal(ev, profile);
   });
   row.querySelector('[data-action="delete"]').addEventListener('click', function () {
     deleteEvidence(ev.id);
@@ -75,9 +75,7 @@ function createEvidenceRow(ev, profile) {
   return row;
 }
 
-/* ---------- Skill dropdown ---------- */
-function populateSkillDropdown() {
-  var profile = Models.loadProfile();
+function populateSkillDropdown(profile, selectedId) {
   var select = document.getElementById('field-evidence-skill');
   select.innerHTML = '<option value="">— Select a skill —</option>';
 
@@ -85,17 +83,21 @@ function populateSkillDropdown() {
     var opt = document.createElement('option');
     opt.value = profile.skills[i].id;
     opt.textContent = profile.skills[i].name;
+    if (selectedId && selectedId === profile.skills[i].id) {
+      opt.selected = true;
+    }
     select.appendChild(opt);
   }
 }
 
-/* ---------- Modal ---------- */
 function setupEvidenceModal() {
   var backdrop = document.getElementById('evidence-modal-backdrop');
   var form = document.getElementById('evidence-form');
 
   document.getElementById('add-evidence-btn').addEventListener('click', function () {
-    openEvidenceModal(null);
+    Models.loadProfile().then(function (profile) {
+      openEvidenceModal(null, profile);
+    });
   });
 
   document.getElementById('evidence-modal-cancel').addEventListener('click', function (e) {
@@ -113,8 +115,8 @@ function setupEvidenceModal() {
   });
 }
 
-function openEvidenceModal(ev) {
-  populateSkillDropdown();
+function openEvidenceModal(ev, profile) {
+  populateSkillDropdown(profile, ev ? ev.skillId : null);
   var backdrop = document.getElementById('evidence-modal-backdrop');
   var title = document.getElementById('evidence-modal-title');
 
@@ -122,7 +124,6 @@ function openEvidenceModal(ev) {
     editingEvidenceId = ev.id;
     title.textContent = 'Edit Evidence';
     document.getElementById('field-evidence-title').value = ev.title || '';
-    document.getElementById('field-evidence-skill').value = ev.skillId || '';
     document.getElementById('field-evidence-type').value = ev.type || 'project';
     document.getElementById('field-evidence-desc').value = ev.description || '';
     document.getElementById('field-evidence-link').value = ev.link || '';
@@ -143,7 +144,6 @@ function closeEvidenceModal() {
   editingEvidenceId = null;
 }
 
-/* ---------- Submit ---------- */
 function handleEvidenceSubmit() {
   var title = document.getElementById('field-evidence-title').value.trim();
   var skillId = document.getElementById('field-evidence-skill').value;
@@ -156,50 +156,51 @@ function handleEvidenceSubmit() {
   if (!title) { alert('Please enter a title.'); return; }
   if (!skillId) { alert('Please select a skill.'); return; }
 
-  var profile = Models.loadProfile();
-
-  if (editingEvidenceId) {
-    for (var i = 0; i < profile.evidence.length; i++) {
-      if (profile.evidence[i].id === editingEvidenceId) {
-        profile.evidence[i].title = title;
-        profile.evidence[i].skillId = skillId;
-        profile.evidence[i].type = type;
-        profile.evidence[i].description = description;
-        profile.evidence[i].link = link;
-        profile.evidence[i].dateCompleted = date;
-        profile.evidence[i].verified = verified;
-        break;
+  Models.loadProfile().then(function (profile) {
+    if (editingEvidenceId) {
+      for (var i = 0; i < profile.evidence.length; i++) {
+        if (profile.evidence[i].id === editingEvidenceId) {
+          profile.evidence[i].title = title;
+          profile.evidence[i].skillId = skillId;
+          profile.evidence[i].type = type;
+          profile.evidence[i].description = description;
+          profile.evidence[i].link = link;
+          profile.evidence[i].dateCompleted = date;
+          profile.evidence[i].verified = verified;
+          break;
+        }
       }
+    } else {
+      profile.evidence.push({
+        id: Models.uid('ev'),
+        skillId: skillId,
+        type: type,
+        title: title,
+        description: description,
+        link: link,
+        dateCompleted: date,
+        verified: verified
+      });
     }
-  } else {
-    profile.evidence.push({
-      id: Models.uid('ev'),
-      skillId: skillId,
-      type: type,
-      title: title,
-      description: description,
-      link: link,
-      dateCompleted: date,
-      verified: verified
-    });
-  }
 
-  Models.saveProfile(profile);
-  closeEvidenceModal();
-  renderEvidenceList();
+    return Models.saveProfile(profile).then(function () {
+      closeEvidenceModal();
+      renderEvidenceList(profile);
+    });
+  });
 }
 
-/* ---------- Delete ---------- */
 function deleteEvidence(evidenceId) {
   if (!confirm('Delete this evidence?')) return;
 
-  var profile = Models.loadProfile();
-  profile.evidence = profile.evidence.filter(function (e) { return e.id !== evidenceId; });
-  Models.saveProfile(profile);
-  renderEvidenceList();
+  Models.loadProfile().then(function (profile) {
+    profile.evidence = profile.evidence.filter(function (e) { return e.id !== evidenceId; });
+    return Models.saveProfile(profile).then(function () {
+      renderEvidenceList(profile);
+    });
+  });
 }
 
-/* ---------- Escape HTML ---------- */
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)

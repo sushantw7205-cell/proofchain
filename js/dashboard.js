@@ -1,22 +1,28 @@
-/* DASHBOARD.JS — Renders the student dashboard */
+/* ============================================
+   DASHBOARD.JS — Reads profile from Firestore
+   ============================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
   renderDashboard();
 });
 
 function renderDashboard() {
-  var profile = Models.loadProfile();
-  var analysis = Scoring.analyzeProfile(profile);
-
-  renderStudentCard(profile);
-  renderSummaryTiles(profile, analysis);
-  renderSkillCards(analysis);
-  renderRecommendations(analysis);
-  setupResetButton();
+  Models.loadProfile().then(function (profile) {
+    var analysis = Scoring.analyzeProfile(profile);
+    renderStudentCard(profile);
+    renderSummaryTiles(profile, analysis);
+    renderSkillCards(analysis);
+    renderRecommendations(analysis);
+    setupResetButton();
+  }).catch(function (err) {
+    console.error('Dashboard load failed:', err);
+    document.getElementById('skills-container').innerHTML =
+      '<div class="empty-state"><p>Could not load profile. Check console.</p></div>';
+  });
 }
 
 function renderStudentCard(profile) {
-  var s = profile.student;
+  var s = profile.student || {};
   setText('student-name', s.name || 'Student');
   setText('student-course', s.course || '');
   setText('student-goal', s.goal ? ('Goal: ' + s.goal) : '');
@@ -173,8 +179,9 @@ function setupResetButton() {
   if (!btn) return;
   btn.addEventListener('click', function () {
     if (confirm('Reset to demo data?')) {
-      Models.resetToSeed();
-      renderDashboard();
+      Models.resetToDemo().then(function () {
+        renderDashboard();
+      });
     }
   });
 }

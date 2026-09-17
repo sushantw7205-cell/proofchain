@@ -1,19 +1,28 @@
 /* ============================================
-   RECRUITER.JS — Public read-only profile + skill graph
+   RECRUITER.JS — Public view (with URL fallback)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
-  var profile = loadProfileFromUrl() || Models.loadProfile();
-  var analysis = Scoring.analyzeProfile(profile);
+  var urlProfile = loadProfileFromUrl();
 
+  if (urlProfile) {
+    renderAll(urlProfile);
+  } else {
+    Models.loadProfile().then(function (profile) {
+      renderAll(profile);
+    });
+  }
+});
+
+function renderAll(profile) {
+  var analysis = Scoring.analyzeProfile(profile);
   renderPublicProfile(profile, analysis);
   renderRecruiterSkills(analysis);
   renderEvidenceTimeline(profile);
   renderSkillGraph(profile, analysis);
   setupShareButton(profile);
-});
+}
 
-/* ---------- Load from ?profile=BASE64 (for real sharing) ---------- */
 function loadProfileFromUrl() {
   var params = new URLSearchParams(window.location.search);
   var encoded = params.get('profile');
@@ -31,15 +40,12 @@ function loadProfileFromUrl() {
   return null;
 }
 
-/* ---------- Header ---------- */
 function renderPublicProfile(profile, analysis) {
   var s = profile.student;
-
   setText('public-avatar', (s.name || 'S').charAt(0).toUpperCase());
   setText('public-name', s.name || 'Student');
   setText('public-course', s.course || '');
   setText('public-goal', s.goal ? ('🎯 ' + s.goal) : '');
-
   setText('pub-skills', profile.skills.length);
   setText('pub-evidence', profile.evidence.length);
 
@@ -52,7 +58,6 @@ function renderPublicProfile(profile, analysis) {
   setText('pub-confidence', avg + '%');
 }
 
-/* ---------- Skill cards ---------- */
 function renderRecruiterSkills(analysis) {
   var container = document.getElementById('recruiter-skills');
   container.innerHTML = '';
@@ -62,7 +67,6 @@ function renderRecruiterSkills(analysis) {
     return;
   }
 
-  // Sort by confidence descending
   var sorted = analysis.slice().sort(function (a, b) {
     return b.confidence.score - a.confidence.score;
   });
@@ -116,7 +120,6 @@ function createRecruiterSkillCard(item) {
   return card;
 }
 
-/* ---------- Evidence timeline ---------- */
 function renderEvidenceTimeline(profile) {
   var container = document.getElementById('recruiter-evidence');
   container.innerHTML = '';
@@ -145,10 +148,7 @@ function createEvidenceTimelineRow(ev, profile) {
   var row = document.createElement('div');
   row.className = 'evidence-row type-' + (ev.type || 'project');
 
-  var verifiedBadge = ev.verified
-    ? '<span class="pill pill-verified">✓ Verified</span>'
-    : '';
-
+  var verifiedBadge = ev.verified ? '<span class="pill pill-verified">✓ Verified</span>' : '';
   var linkHtml = ev.link
     ? '<a href="' + escapeHtml(ev.link) + '" target="_blank" rel="noopener">View link →</a>'
     : '<span class="muted">No link</span>';
@@ -171,7 +171,6 @@ function createEvidenceTimelineRow(ev, profile) {
   return row;
 }
 
-/* ---------- Skill Graph (SVG) ---------- */
 function renderSkillGraph(profile, analysis) {
   var svg = document.getElementById('skill-graph');
   svg.innerHTML = '';
@@ -185,7 +184,6 @@ function renderSkillGraph(profile, analysis) {
   var CX = W / 2, CY = H / 2;
   var radius = 130;
 
-  // Position skills in a circle
   var positions = {};
   var n = profile.skills.length;
   for (var i = 0; i < n; i++) {
@@ -195,13 +193,11 @@ function renderSkillGraph(profile, analysis) {
     positions[profile.skills[i].id] = { x: x, y: y, skill: profile.skills[i] };
   }
 
-  // Lookup: id → analysis item
   var analysisMap = {};
   for (var j = 0; j < analysis.length; j++) {
     analysisMap[analysis[j].skill.id] = analysis[j];
   }
 
-  // Draw edges (relationships)
   for (var k = 0; k < profile.skills.length; k++) {
     var sk = profile.skills[k];
     var related = sk.relatedSkills || [];
@@ -220,7 +216,6 @@ function renderSkillGraph(profile, analysis) {
     }
   }
 
-  // Draw nodes
   for (var id in positions) {
     if (!positions.hasOwnProperty(id)) continue;
     var pos = positions[id];
@@ -232,9 +227,8 @@ function renderSkillGraph(profile, analysis) {
       : conf >= 1 ? '#ef4444'
       : '#475569';
 
-    var nodeRadius = 22 + (conf / 100) * 14;   // 22 – 36
+    var nodeRadius = 22 + (conf / 100) * 14;
 
-    // Circle
     var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', pos.x);
     circle.setAttribute('cy', pos.y);
@@ -245,7 +239,6 @@ function renderSkillGraph(profile, analysis) {
     circle.setAttribute('stroke-width', '2');
     svg.appendChild(circle);
 
-    // Confidence label inside circle
     var confText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     confText.setAttribute('x', pos.x);
     confText.setAttribute('y', pos.y + 4);
@@ -256,7 +249,6 @@ function renderSkillGraph(profile, analysis) {
     confText.textContent = conf + '%';
     svg.appendChild(confText);
 
-    // Skill name below
     var nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     nameText.setAttribute('x', pos.x);
     nameText.setAttribute('y', pos.y + nodeRadius + 16);
@@ -269,20 +261,16 @@ function renderSkillGraph(profile, analysis) {
   }
 }
 
-/* ---------- Share button ---------- */
 function setupShareButton(profile) {
   var btn = document.getElementById('copy-share-btn');
   if (!btn) return;
 
   btn.addEventListener('click', function () {
-    // Encode profile into base64 URL-safe
     var json = JSON.stringify(profile);
     var encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
-
     var baseUrl = window.location.origin + window.location.pathname;
     var shareUrl = baseUrl + '?profile=' + encoded;
 
-    // Copy to clipboard
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(shareUrl).then(function () {
         btn.textContent = '✓ Link Copied!';
@@ -296,7 +284,6 @@ function setupShareButton(profile) {
   });
 }
 
-/* ---------- Utilities ---------- */
 function setText(id, value) {
   var el = document.getElementById(id);
   if (el) el.textContent = value;

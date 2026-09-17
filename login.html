@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — ProofChain</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body>
+
+  <div class="auth-page">
+
+    <!-- Left: Brand panel -->
+    <div class="auth-brand-panel">
+      <div class="nav-brand" style="margin-bottom:40px;">
+        <span class="brand-dot"></span>
+        <span class="brand-name">ProofChain</span>
+      </div>
+      <h1 class="auth-brand-title">
+        Don't just claim<br/>your skills.<br/>
+        <span class="gradient-text">Prove them.</span>
+      </h1>
+      <p class="auth-brand-text">
+        An evidence-based skill verification platform for students.
+        Sign in to build your verified profile.
+      </p>
+      <ul class="auth-features">
+        <li>✓ Track skills & evidence</li>
+        <li>✓ Take practical assessments</li>
+        <li>✓ Share a recruiter-ready link</li>
+      </ul>
+    </div>
+
+    <!-- Right: Auth form -->
+    <div class="auth-form-panel">
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-signin">Sign In</button>
+        <button class="auth-tab" id="tab-signup">Sign Up</button>
+      </div>
+
+      <!-- Google button -->
+      <button class="btn-google" id="btn-google">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.8l5.7-5.7C33.6 6.4 29 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5 43.5 34.8 43.5 24c0-1.2-.1-2.4-.4-3.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12.9 24 12.9c2.8 0 5.3 1 7.3 2.8l5.7-5.7C33.6 6.4 29 4.5 24 4.5c-7.4 0-13.8 4.1-17.3 10.2z"/>
+          <path fill="#4CAF50" d="M24 43.5c5 0 9.5-1.9 12.9-5l-6-5c-2 1.4-4.4 2.2-6.9 2.2-5.2 0-9.6-3.3-11.2-8l-6.5 5C9.9 39.2 16.4 43.5 24 43.5z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6 5c-.4.4 6.4-4.7 6.4-14.4 0-1.2-.1-2.4-.4-3.5z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-divider">
+        <span>or</span>
+      </div>
+
+      <!-- Email form -->
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="auth-email">Email</label>
+          <input type="email" id="auth-email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password" />
+        </div>
+
+        <p class="auth-error" id="auth-error" hidden></p>
+
+        <button type="submit" class="btn btn-primary auth-submit" id="auth-submit">
+          Sign In
+        </button>
+      </form>
+
+      <p class="auth-footer-note muted" id="auth-footer-note">
+        Sign in to access your dashboard.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat, from CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase init + auth logic -->
+  <script src="js/firebase.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/store.js"></script>
+<script src="js/models.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
