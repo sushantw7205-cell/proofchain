@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assessments — ProofChain</title>
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ProofChain</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="profile.html">Skills</a></li>
+      <li><a href="evidence.html">Evidence</a></li>
+      <li><a href="assessment.html" class="active">Assessments</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-container">
+
+    <!-- ====== SKILL PICKER VIEW ====== -->
+    <div id="picker-view">
+      <div class="page-header">
+        <div>
+          <h1>Take an Assessment</h1>
+          <p class="muted">Pick a skill, answer 5 practical questions, and get an instant score.</p>
+        </div>
+      </div>
+
+      <div id="skill-picker" class="skills-grid"></div>
+
+      <div class="section-header" style="margin-top:40px;">
+        <h2>Past Assessments</h2>
+      </div>
+      <div id="past-assessments" class="evidence-list"></div>
+    </div>
+
+    <!-- ====== QUIZ VIEW ====== -->
+    <div id="quiz-view" hidden>
+      <div class="quiz-header">
+        <div>
+          <p class="quiz-skill-name" id="quiz-skill-name">JavaScript</p>
+          <p class="muted" id="quiz-progress">Question 1 of 5</p>
+        </div>
+        <button class="btn btn-ghost btn-small" id="quiz-exit">Exit Quiz</button>
+      </div>
+
+      <div class="quiz-progress-track">
+        <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+      </div>
+
+      <div class="card quiz-card">
+        <p class="quiz-question" id="quiz-question">Loading question...</p>
+        <div class="quiz-options" id="quiz-options"></div>
+      </div>
+
+      <div class="quiz-nav">
+        <button class="btn btn-primary" id="quiz-next" disabled>Next →</button>
+      </div>
+    </div>
+
+    <!-- ====== RESULT VIEW ====== -->
+    <div id="result-view" hidden>
+      <div class="card result-card">
+        <p class="result-label">Your Score</p>
+        <p class="result-score" id="result-score">0%</p>
+        <p class="result-message" id="result-message"></p>
+        <p class="result-meta muted" id="result-meta"></p>
+
+        <div class="form-actions" style="justify-content:center;margin-top:24px;">
+          <button class="btn btn-ghost" id="result-back">Back to Assessments</button>
+          <a href="dashboard.html" class="btn btn-primary">View Dashboard →</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>ProofChain · Evidence-based skill verification · BCS Major Project</p>
+  </footer>
+
+  <script src="../js/storage.js"></script>
+  <script src="../js/models.js"></script>
+  <script src="../js/scoring.js"></script>
+  <script src="../data/questions.js"></script>
+  <script src="../js/assessment.js"></script>
+</body>
+</html>
